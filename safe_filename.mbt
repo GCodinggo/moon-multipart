@@ -15,6 +15,10 @@ pub fn is_dangerous_filename(filename : String) -> Bool {
     return true
   }
   let fb = @utf8.encode(filename)
+  if fb.length() > 0 &&
+    (fb[fb.length() - 1] == b' ' || fb[fb.length() - 1] == b'.') {
+    return true
+  }
   if fb.length() >= 2 && is_alpha(fb[0]) && fb[1] == b':' {
     return true
   }
@@ -27,6 +31,9 @@ pub fn is_dangerous_filename(filename : String) -> Bool {
   if has_null {
     return true
   }
+  if is_windows_reserved_name(filename) {
+    return true
+  }
   false
 }
 
@@ -36,17 +43,16 @@ pub fn validate_filename(
   filename : String,
   max_len : Int,
 ) -> Result[String, MultipartError] {
-  let trimmed = filename.trim().to_owned()
-  if trimmed.length() == 0 {
+  if filename.trim().length() == 0 {
     return Err(PathTraversal("empty filename".to_string()))
   }
-  if trimmed.length() > max_len {
-    return Err(FilenameTooLong(trimmed, max_len))
+  if filename.length() > max_len {
+    return Err(FilenameTooLong(filename, max_len))
   }
-  if is_dangerous_filename(trimmed) {
-    return Err(PathTraversal(trimmed))
+  if is_dangerous_filename(filename) {
+    return Err(PathTraversal(filename))
   }
-  Ok(trimmed)
+  Ok(filename.to_string())
 }
 
 ///|
@@ -72,13 +78,13 @@ pub fn safe_filename(original : String) -> String {
     chars.push(b.to_char())
     i = i + 1
   }
-  let result = String::from_array(chars)
+  let result = trim_windows_tail(String::from_array(chars))
   // Check for drive letter
   let rb = @utf8.encode(result)
   if rb.length() >= 2 && is_alpha(rb[0]) && rb[1] == b':' {
-    return strip_dangerous(result[2:].to_owned())
+    return make_windows_safe(strip_dangerous(result[2:].to_owned()))
   }
-  strip_dangerous(result)
+  make_windows_safe(strip_dangerous(result))
 }
 
 ///|
@@ -126,6 +132,50 @@ fn strip_dangerous(s : String) -> String {
     }
   }
   String::from_array(chars)
+}
+
+///|
+/// Remove trailing spaces and dots, which Windows silently discards.
+fn trim_windows_tail(s : String) -> String {
+  let bytes = @utf8.encode(s)
+  let mut end = bytes.length()
+  while end > 0 && (bytes[end - 1] == b' ' || bytes[end - 1] == b'.') {
+    end = end - 1
+  }
+  if end == 0 {
+    "_"
+  } else {
+    s[0:end].to_owned()
+  }
+}
+
+///|
+/// Prefix Windows device names so a sanitized filename is safe to create.
+fn make_windows_safe(s : String) -> String {
+  if is_windows_reserved_name(s) {
+    "_" + s
+  } else {
+    s
+  }
+}
+
+///|
+/// Check Windows reserved device names, with or without an extension.
+fn is_windows_reserved_name(filename : String) -> Bool {
+  let stem = match filename.find(".") {
+    Some(index) => filename[0:index].to_owned()
+    None => filename.to_string()
+  }
+  let lower = stem.to_lower()
+  if lower == "con" || lower == "prn" || lower == "aux" || lower == "nul" {
+    return true
+  }
+  let bytes = @utf8.encode(lower)
+  if bytes.length() != 4 || bytes[3] < b'1' || bytes[3] > b'9' {
+    return false
+  }
+  (bytes[0] == b'c' && bytes[1] == b'o' && bytes[2] == b'm') ||
+  (bytes[0] == b'l' && bytes[1] == b'p' && bytes[2] == b't')
 }
 
 ///|

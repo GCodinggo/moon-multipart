@@ -1265,6 +1265,43 @@ test "safe_fn: unique generates safe name" {
   @test.assert_eq(a.contains("\\"), false)
 }
 
+///|
+test "safe_fn: rejects Windows reserved device names" {
+  @test.assert_eq(is_dangerous_filename("CON"), true)
+  @test.assert_eq(is_dangerous_filename("prn.txt"), true)
+  @test.assert_eq(is_dangerous_filename("AUX"), true)
+  @test.assert_eq(is_dangerous_filename("nul"), true)
+  @test.assert_eq(is_dangerous_filename("COM1"), true)
+  @test.assert_eq(is_dangerous_filename("com9.log"), true)
+  @test.assert_eq(is_dangerous_filename("LPT1"), true)
+  @test.assert_eq(is_dangerous_filename("lpt9.txt"), true)
+}
+
+///|
+test "safe_fn: rejects Windows path forms and trailing characters" {
+  @test.assert_eq(is_dangerous_filename("/etc/passwd"), true)
+  @test.assert_eq(is_dangerous_filename("C:\\temp\\file.txt"), true)
+  @test.assert_eq(is_dangerous_filename("\\\\server\\share\\file.txt"), true)
+  @test.assert_eq(is_dangerous_filename("..\\secret.txt"), true)
+  @test.assert_eq(is_dangerous_filename("report.txt "), true)
+  @test.assert_eq(is_dangerous_filename("report.txt."), true)
+}
+
+///|
+test "safe_fn: sanitizes Windows reserved names and trailing characters" {
+  @test.assert_eq(safe_filename("CON"), "_CON")
+  @test.assert_eq(safe_filename("NUL.txt"), "_NUL.txt")
+  @test.assert_eq(safe_filename("report. "), "report")
+}
+
+///|
+test "safe_fn: accepts normal Unicode filename" {
+  match validate_filename("照片.png", 255) {
+    Ok(name) => @test.assert_eq(name, "照片.png")
+    Err(_) => @test.assert_eq(true, false)
+  }
+}
+
 // ===========================================================================
 // Part 10: Writer streaming API tests (4 tests)
 // ===========================================================================
