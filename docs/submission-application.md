@@ -8,7 +8,7 @@
 | 参赛者 | 郭康泰 |
 | GitHub | https://github.com/GCodinggo/moon-multipart |
 | Mooncakes | 待发布（GCodinggo/moon-multipart） |
-| 当前版本 | v0.3.0 |
+| 当前版本 | v0.3.1 |
 | 许可证 | Apache-2.0 |
 | 联系方式 | 通过官方报名问卷单独提交 |
 
