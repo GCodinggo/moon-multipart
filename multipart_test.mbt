@@ -333,6 +333,66 @@ test "writer: no Content-Type for untyped file" {
   @test.assert_eq(bytes_has(body, "Content-Type:"), false)
 }
 
+///|
+test "writer: rejects CRLF in field name" {
+  let w = MultipartWriter::with_boundary("B")
+  match w.try_add_field("name\r\nX-Injected: yes", "value") {
+    Err(NonCompliantHeader(_)) => @test.assert_eq(true, true)
+    _ => @test.assert_eq(true, false)
+  }
+}
+
+///|
+test "writer: rejects CRLF in filename" {
+  let w = MultipartWriter::with_boundary("B")
+  match w.try_add_file("file", "a.txt\nX-Injected: yes", None, b"data") {
+    Err(NonCompliantHeader(_)) => @test.assert_eq(true, true)
+    _ => @test.assert_eq(true, false)
+  }
+}
+
+///|
+test "writer: rejects CRLF in content type" {
+  let w = MultipartWriter::with_boundary("B")
+  match
+    w.try_add_file(
+      "file",
+      "a.txt",
+      Some("text/plain\r\nX-Injected: yes"),
+      b"data",
+    ) {
+    Err(NonCompliantHeader(_)) => @test.assert_eq(true, true)
+    _ => @test.assert_eq(true, false)
+  }
+}
+
+///|
+test "writer: rejects CRLF in custom header" {
+  let w = MultipartWriter::with_boundary("B")
+  match
+    w.try_add_file_with_headers(
+      "file",
+      "a.txt",
+      None,
+      [("X-Meta", "ok\r\nX-Injected: yes")],
+      b"data",
+    ) {
+    Err(NonCompliantHeader(_)) => @test.assert_eq(true, true)
+    _ => @test.assert_eq(true, false)
+  }
+}
+
+///|
+test "writer: accepts Unicode header parameters" {
+  let w = MultipartWriter::with_boundary("UnicodeB")
+  match w.try_add_field("昵称", "郭康泰") {
+    Ok(_) => ()
+    Err(_) => @test.assert_eq(true, false)
+  }
+  let (_, body) = w.finish()
+  @test.assert_eq(bytes_has(body, "昵称"), true)
+}
+
 // ===========================================================================
 // Part 4: End-to-end — generate then parse (10 tests)
 // ===========================================================================

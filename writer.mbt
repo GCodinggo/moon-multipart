@@ -10,7 +10,7 @@ pub(all) struct MultipartWriter {
 }
 
 ///|
-/// Generate a unique boundary string for multipart messages.
+/// Generate a boundary string for multipart messages.
 fn generate_boundary() -> String {
   let base = "----MoonBitMultipart"
   let suffix = random_hex(16)
@@ -65,9 +65,27 @@ pub fn MultipartWriter::add_field(
   name : String,
   value : String,
 ) -> Unit {
-  self.write_part_header(name, None, None)
+  match self.try_add_field(name, value) {
+    Ok(_) => ()
+    Err(e) => abort(e.to_string())
+  }
+}
+
+///|
+/// Add a text form field, rejecting values that could inject a header line.
+pub fn MultipartWriter::try_add_field(
+  self : MultipartWriter,
+  name : String,
+  value : String,
+) -> Result[Unit, MultipartError] {
+  match validate_part_headers(name, None, None) {
+    Err(e) => return Err(e)
+    Ok(_) => ()
+  }
+  self.write_part_header(name, None, None, [])
   self.buf.write_bytes(@utf8.encode(value))
   self.part_count = self.part_count + 1
+  Ok(())
 }
 
 ///|
@@ -79,9 +97,49 @@ pub fn MultipartWriter::add_file(
   content_type : String?,
   data : Bytes,
 ) -> Unit {
-  self.write_part_header(name, Some(filename), content_type)
+  match self.try_add_file(name, filename, content_type, data) {
+    Ok(_) => ()
+    Err(e) => abort(e.to_string())
+  }
+}
+
+///|
+/// Add a file upload, rejecting CRLF in header parameters.
+pub fn MultipartWriter::try_add_file(
+  self : MultipartWriter,
+  name : String,
+  filename : String,
+  content_type : String?,
+  data : Bytes,
+) -> Result[Unit, MultipartError] {
+  self.try_add_file_with_headers(name, filename, content_type, [], data)
+}
+
+///|
+/// Add a file upload with validated custom part headers.
+pub fn MultipartWriter::try_add_file_with_headers(
+  self : MultipartWriter,
+  name : String,
+  filename : String,
+  content_type : String?,
+  extra_headers : Array[(String, String)],
+  data : Bytes,
+) -> Result[Unit, MultipartError] {
+  match validate_part_headers(name, Some(filename), content_type) {
+    Err(e) => return Err(e)
+    Ok(_) => ()
+  }
+  for header in extra_headers {
+    let (header_name, header_value) = header
+    match validate_custom_header(header_name, header_value) {
+      Err(e) => return Err(e)
+      Ok(_) => ()
+    }
+  }
+  self.write_part_header(name, Some(filename), content_type, extra_headers)
   self.buf.write_bytes(data)
   self.part_count = self.part_count + 1
+  Ok(())
 }
 
 ///|
@@ -100,6 +158,7 @@ fn MultipartWriter::write_part_header(
   name : String,
   filename : String?,
   content_type : String?,
+  extra_headers : Array[(String, String)],
 ) -> Unit {
   if self.part_count > 0 {
     self.buf.write_bytes(b"\r\n")
@@ -132,6 +191,67 @@ fn MultipartWriter::write_part_header(
     None => ()
   }
 
+  for header in extra_headers {
+    let (header_name, header_value) = header
+    self.buf.write_bytes(@utf8.encode(header_name))
+    self.buf.write_bytes(b": ")
+    self.buf.write_bytes(@utf8.encode(header_value))
+    self.buf.write_bytes(b"\r\n")
+  }
+
   // Empty line to end headers
   self.buf.write_bytes(b"\r\n")
+}
+
+///|
+/// Reject CRLF in an HTTP header component.
+pub fn validate_header_component(
+  value : String,
+  label : String,
+) -> Result[Unit, MultipartError] {
+  if value.contains("\r") || value.contains("\n") {
+    return Err(NonCompliantHeader(label + " must not contain CR or LF"))
+  }
+  Ok(())
+}
+
+///|
+/// Validate a custom part header name and value before it is serialized.
+pub fn validate_custom_header(
+  name : String,
+  value : String,
+) -> Result[Unit, MultipartError] {
+  match validate_header_component(name, "custom header name") {
+    Err(e) => Err(e)
+    Ok(_) => validate_header_component(value, "custom header value")
+  }
+}
+
+///|
+fn validate_part_headers(
+  name : String,
+  filename : String?,
+  content_type : String?,
+) -> Result[Unit, MultipartError] {
+  match validate_header_component(name, "field name") {
+    Err(e) => return Err(e)
+    Ok(_) => ()
+  }
+  match filename {
+    Some(value) =>
+      match validate_header_component(value, "filename") {
+        Err(e) => return Err(e)
+        Ok(_) => ()
+      }
+    None => ()
+  }
+  match content_type {
+    Some(value) =>
+      match validate_header_component(value, "content type") {
+        Err(e) => return Err(e)
+        Ok(_) => ()
+      }
+    None => ()
+  }
+  Ok(())
 }

@@ -47,6 +47,24 @@ pub fn StreamingWriter::begin_part(
   filename : String?,
   content_type : String?,
 ) -> Unit {
+  match self.try_begin_part(name, filename, content_type) {
+    Ok(_) => ()
+    Err(e) => abort(e.to_string())
+  }
+}
+
+///|
+/// Begin a part while rejecting CRLF in every serialized header parameter.
+pub fn StreamingWriter::try_begin_part(
+  self : StreamingWriter,
+  name : String,
+  filename : String?,
+  content_type : String?,
+) -> Result[Unit, MultipartError] {
+  match validate_part_headers(name, filename, content_type) {
+    Err(e) => return Err(e)
+    Ok(_) => ()
+  }
   if self.part_count > 0 {
     self.buf.write_bytes(b"\r\n")
   }
@@ -75,6 +93,7 @@ pub fn StreamingWriter::begin_part(
   }
   self.buf.write_bytes(b"\r\n")
   self.current_part_open = true
+  Ok(())
 }
 
 ///|
