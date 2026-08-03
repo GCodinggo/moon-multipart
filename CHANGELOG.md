@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.0 (2026-08-01)
+
+### Added
+
+- CRLF injection protection for multipart header parameters, including field names, filenames, Content-Type values, and custom part headers
+- Checked `MultipartWriter` and `StreamingWriter` APIs that return `MultipartError` instead of serializing unsafe input
+- Extended Windows filename validation for reserved device names, UNC and drive paths, and trailing spaces or dots
+- Regression coverage for CRLF injection, Unicode header parameters, and Windows filename safety rules
+
+### Changed
+
+- Corrected the documented maintainer, GitHub namespace, Mooncakes namespace, and package repository metadata
+- Added contributor and historical Git identity documentation
+
+### Fixed
+
+- Replaced the placeholder copyright notice with the project copyright holder
+
 ## 0.2.0 (2026-07-30)
 
 ### New Features

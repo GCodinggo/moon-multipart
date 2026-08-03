@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Songyz002/moon-multipart"
+package "GCodinggo/moon-multipart"
 
 import {
   "moonbitlang/core/buffer",
@@ -11,13 +11,29 @@ pub fn is_content_disposition(String) -> Bool
 
 pub fn is_content_type(String) -> Bool
 
+pub fn is_dangerous_filename(String) -> Bool
+
+pub fn parse_all(Bytes, String, ParseOptions) -> Result[MultipartForm, MultipartError]
+
 pub fn parse_boundary_from_content_type(String) -> Result[String, MultipartError]
 
-pub fn parse_content_disposition(String) -> Result[(String, String?), MultipartError]
+pub fn parse_content_disposition(String, ParseOptions) -> Result[(String, String?), MultipartError]
+
+pub fn parse_content_disposition_simple(String) -> Result[(String, String?), MultipartError]
 
 pub fn parse_header_line(String) -> (String, String)?
 
+pub fn safe_filename(String) -> String
+
+pub fn unique_filename(String) -> String
+
 pub fn validate_boundary(String) -> Result[String, MultipartError]
+
+pub fn validate_custom_header(String, String) -> Result[Unit, MultipartError]
+
+pub fn validate_filename(String, Int) -> Result[String, MultipartError]
+
+pub fn validate_header_component(String, String) -> Result[Unit, MultipartError]
 
 // Errors
 
@@ -43,6 +59,7 @@ pub(all) struct Limits {
   max_field_size : Int
   max_file_size : Int
   max_total_size : Int
+  max_filename_len : Int
 } derive(@debug.Debug)
 pub fn Limits::default() -> Self
 pub fn Limits::permissive() -> Self
@@ -58,11 +75,25 @@ pub(all) enum MultipartError {
   TooManyParts(Int)
   MalformedHeader(String)
   MissingName
+  MissingDisposition
   PathTraversal(String)
+  FilenameTooLong(String, Int)
   IncompleteBody
+  InvalidEncoding(String)
+  NonCompliantHeader(String)
   ProcessingError(String)
 } derive(@debug.Debug)
 pub fn MultipartError::to_string(Self) -> String
+
+pub(all) struct MultipartForm {
+  parts : Array[Part]
+} derive(@debug.Debug)
+pub fn MultipartForm::field(Self, String) -> String?
+pub fn MultipartForm::field_values(Self, String) -> Array[String]
+pub fn MultipartForm::file(Self, String) -> Part?
+pub fn MultipartForm::files(Self, String) -> Array[Part]
+pub fn MultipartForm::len(Self) -> Int
+pub fn MultipartForm::new() -> Self
 
 pub(all) struct MultipartWriter {
   boundary : String
@@ -75,13 +106,31 @@ pub fn MultipartWriter::finish(Self) -> (String, Bytes)
 pub fn MultipartWriter::get_boundary(Self) -> String
 pub fn MultipartWriter::new() -> Self
 pub fn MultipartWriter::part_count(Self) -> Int
+pub fn MultipartWriter::try_add_field(Self, String, String) -> Result[Unit, MultipartError]
+pub fn MultipartWriter::try_add_file(Self, String, String, String?, Bytes) -> Result[Unit, MultipartError]
+pub fn MultipartWriter::try_add_file_with_headers(Self, String, String, String?, Array[(String, String)], Bytes) -> Result[Unit, MultipartError]
 pub fn MultipartWriter::with_boundary(String) -> Self
 
 pub(all) enum ParseEvent {
   PartBegin(String, String?, String?)
   PartData(Bytes)
   PartEnd
+  Finished
 } derive(@debug.Debug)
+
+pub(all) enum ParseMode {
+  Strict
+  Compatible
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ParseOptions {
+  mode : ParseMode
+  limits : Limits
+  reject_filename_star : Bool
+} derive(@debug.Debug)
+pub fn ParseOptions::compatible() -> Self
+pub fn ParseOptions::default() -> Self
+pub fn ParseOptions::strict_rfc() -> Self
 
 type ParsePhase
 
@@ -90,7 +139,7 @@ pub(all) struct Parser {
   delimiter : Bytes
   boundary_prefix : Bytes
   delimiter_len : Int
-  limits : Limits
+  options : ParseOptions
   buf : @buffer.Buffer
   mut phase : ParsePhase
   body_buf : @buffer.Buffer
@@ -101,20 +150,40 @@ pub(all) struct Parser {
   mut part_count : Int
   mut total_size : Int
   mut first_boundary_found : Bool
+  mut finished : Bool
+  mut offset : Int
 }
 pub fn Parser::feed(Self, Bytes) -> Result[Array[ParseEvent], MultipartError]
 pub fn Parser::finish(Self) -> Result[Array[ParseEvent], MultipartError]
-pub fn Parser::new(String, Limits) -> Self
+pub fn Parser::is_finished(Self) -> Bool
+pub fn Parser::new(String, ParseOptions) -> Self
 
 pub(all) enum Part {
   Field(String, String)
   File(String, String, String?, Bytes)
 } derive(@debug.Debug)
+pub fn Part::content_type(Self) -> String?
+pub fn Part::data(Self) -> Bytes?
 pub fn Part::filename(Self) -> String?
 pub fn Part::is_field(Self) -> Bool
 pub fn Part::is_file(Self) -> Bool
 pub fn Part::name(Self) -> String
 pub fn Part::value(Self) -> String?
+
+pub(all) struct StreamingWriter {
+  boundary : String
+  buf : @buffer.Buffer
+  mut part_count : Int
+  mut current_part_open : Bool
+}
+pub fn StreamingWriter::begin_part(Self, String, String?, String?) -> Unit
+pub fn StreamingWriter::end_part(Self) -> Unit
+pub fn StreamingWriter::finish(Self) -> Bytes
+pub fn StreamingWriter::get_boundary(Self) -> String
+pub fn StreamingWriter::new(String) -> Self
+pub fn StreamingWriter::try_begin_part(Self, String, String?, String?) -> Result[Unit, MultipartError]
+pub fn StreamingWriter::with_random_boundary() -> Self
+pub fn StreamingWriter::write_chunk(Self, Bytes) -> Unit
 
 // Type aliases
 

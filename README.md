@@ -16,10 +16,11 @@ GitHub 用户名为 `GCodinggo`。
 - **流式解析** — 增量处理上传数据，PartData 逐块输出，不将整个文件加载到内存
 - **跨分块边界检测** — 正确处理被网络分块拆分的 boundary 分隔符
 - **安全限制** — 6 维度可配置限制（part 数量、header 大小、字段大小、文件大小、总大小、文件名长度）
-- **路径穿越防护** — 检测并拒绝 `../`、`\`、盘符、null 字节等危险文件名
+- **请求头注入防护** — 拒绝字段名、文件名、Content-Type 和自定义 header 中的 CRLF
+- **路径穿越防护** — 检测并拒绝 `../`、`\`、盘符、UNC 路径、Windows 保留设备名、尾随空格或点号、null 字节等危险文件名
 - **安全文件名工具** — `safe_filename()`、`validate_filename()`、`unique_filename()`
 - **严格/兼容双模式** — Strict 模式拒绝非标准扩展（如 `filename*`），Compatible 模式宽松接受
-- **流式 Writer** — `StreamingWriter` 支持 `begin_part` / `write_chunk` / `end_part` 分块添加数据；真正恒定内存输出计划在 v0.3.0 引入 Sink/回调接口
+- **流式 Writer** — `StreamingWriter` 支持 `begin_part` / `write_chunk` / `end_part` 分块添加数据，并提供带校验的 `try_begin_part`
 - **高层 API** — `parse_all()` 一键解析返回 `MultipartForm`，支持同名字段/多文件
 
 ## 快速开始
@@ -145,12 +146,16 @@ let unique = unique_filename("photo.jpg")  // → "photo_3A7F2C1D.jpg"
 - `MultipartWriter::with_boundary(boundary) -> MultipartWriter`
 - `MultipartWriter::add_field(self, name, value) -> Unit`
 - `MultipartWriter::add_file(self, name, filename, content_type?, data) -> Unit`
+- `MultipartWriter::try_add_field(self, name, value) -> Result[Unit, MultipartError]`
+- `MultipartWriter::try_add_file(self, name, filename, content_type?, data) -> Result[Unit, MultipartError]`
+- `MultipartWriter::try_add_file_with_headers(self, name, filename, content_type?, extra_headers, data) -> Result[Unit, MultipartError]`
 - `MultipartWriter::finish(self) -> (String, Bytes)`
 
 **StreamingWriter**
 
 - `StreamingWriter::new(boundary) -> StreamingWriter`
 - `StreamingWriter::begin_part(self, name, filename?, content_type?) -> Unit`
+- `StreamingWriter::try_begin_part(self, name, filename?, content_type?) -> Result[Unit, MultipartError]`
 - `StreamingWriter::write_chunk(self, data) -> Unit`
 - `StreamingWriter::end_part(self) -> Unit`
 - `StreamingWriter::finish(self) -> Bytes`
@@ -161,6 +166,8 @@ let unique = unique_filename("photo.jpg")  // → "photo_3A7F2C1D.jpg"
 - `validate_filename(filename, max_len) -> Result[String, MultipartError]`
 - `safe_filename(original) -> String`
 - `unique_filename(original) -> String`
+- `validate_header_component(value, label) -> Result[Unit, MultipartError]`
+- `validate_custom_header(name, value) -> Result[Unit, MultipartError]`
 
 ## 安全限制
 
@@ -176,7 +183,7 @@ let unique = unique_filename("photo.jpg")  // → "photo_3A7F2C1D.jpg"
 ## 项目规模
 
 - **3,650 行**有效 MoonBit 代码
-- **87 个**测试用例
+- **96 个**测试用例
 - **8 个**源码模块
 
 ## RFC 7578 合规矩阵
