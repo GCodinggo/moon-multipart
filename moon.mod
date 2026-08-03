@@ -1,6 +1,6 @@
 name = "GCodinggo/moon-multipart"
 
-version = "0.3.0"
+version = "0.3.1"
 
 readme = "README.md"
 
@@ -21,3 +21,7 @@ keywords = [
 preferred_target = "wasm-gc"
 
 description = "面向 MoonBit HTTP 生态的流式 multipart/form-data 解析与生成库，支持 RFC 7578 标准。"
+
+options(
+  exclude: [ "docs/*.pdf", "docs/submission-application.md" ],
+)

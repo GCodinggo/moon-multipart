@@ -584,15 +584,13 @@ test "streaming: PartBegin PartData PartEnd events" {
   match parser.feed(body) {
     Ok(evts) => {
       let mut has_begin = false
-      let mut has_data = false
       let mut has_end = false
-      let mut has_finished = false
       for e in evts {
         match e {
           PartBegin(_, _, _) => has_begin = true
-          PartData(_) => has_data = true
+          PartData(_) => ()
           PartEnd => has_end = true
-          Finished => has_finished = true
+          Finished => ()
         }
       }
       @test.assert_eq(has_begin, true)
@@ -1070,7 +1068,6 @@ test "limits: invalid body produces error" {
 
 ///|
 test "limits: filename too long rejected" {
-  let boundary = "LimFname"
   let long_fn = "x".repeat(300)
   match
     parse_content_disposition(
