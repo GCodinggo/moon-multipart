@@ -1,10 +1,10 @@
-name = "Songyz002/moon-multipart"
+name = "GCodinggo/moon-multipart"
 
 version = "0.2.1"
 
 readme = "README.md"
 
-repository = "https://github.com/Songyz002/moon-multipart"
+repository = "https://github.com/GCodinggo/moon-multipart"
 
 license = "Apache-2.0"
 

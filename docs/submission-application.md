@@ -6,7 +6,23 @@
 |----------|---------------|------|------------------------|
 | **参赛者** | 郭康泰 | **联系方式** | 已通过官方报名问卷提交 |
 | **许可证** | Apache-2.0 | | |
-| **GitHub** | github.com/Songyz002/moon-multipart | **Mooncakes** | Songyz002/moon-multipart |
+| **GitHub** | github.com/GCodinggo/moon-multipart | **Mooncakes** | GCodinggo/moon-multipart |
+
+## 仓库与提交身份说明
+
+本项目参赛者及主要维护者为郭康泰。
+
+项目早期部分提交由于开发电脑中的 Git 作者姓名和邮箱配置错误，
+在 GitHub Contributors 和 Commit 页面中显示为其他身份。
+该问题属于 Git 提交元数据配置错误，不代表项目仓库所有权发生变化。
+
+目前已完成以下修正：
+
+1. GitHub 公开资料已更新为郭康泰本人信息；
+2. 当前仓库已使用郭康泰本人的 Git 姓名；
+3. 当前仓库已使用郭康泰本人 GitHub 已验证邮箱；
+4. 后续版本均由郭康泰本人持续开发并提交；
+5. 原历史记录暂不重写，以保留完整开发轨迹。
 
 ## 项目背景
 
@@ -20,7 +36,7 @@ multipart/form-data（RFC 7578）是浏览器上传文件、REST API 提交表�
 | **测试** | 87 个用例全部通过，覆盖 boundary 解析、端到端 roundtrip、跨分块流式、安全限制、双模式 |
 | **核心功能** | 增量流式 Parser（PartData 逐块输出，不缓存文件）；独立 boundary 匹配器；高层 MultipartForm API（同名字段/多文件）；Strict / Compatible 双模式；6 维度安全限制；安全文件名（路径穿越防护 + 清理 + 唯一化）；StreamingWriter 分段写入；cmd/main 本地 roundtrip demo |
 | **CI** | GitHub Actions 多目标矩阵（native / js / wasm-gc） |
-| **发布** | 已上架 Mooncakes (`Songyz002/moon-multipart`) |
+| **发布** | 已上架 Mooncakes (`GCodinggo/moon-multipart`) |
 
 ## 本次活动计划新增（v0.3.0 ~ v0.4.0）
 

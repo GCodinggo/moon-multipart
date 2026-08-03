@@ -2,6 +2,14 @@
 
 面向 MoonBit HTTP 生态的**流式 multipart/form-data 解析与生成库**，完整实现 RFC 7578 标准。
 
+## 项目维护者
+
+本项目由郭康泰开发和维护。
+
+GitHub 用户名为 `GCodinggo`。
+项目早期部分提交由于本地 Git 作者信息配置错误，显示为其他姓名。
+目前已统一使用郭康泰本人的 Git 姓名及 GitHub 已验证邮箱进行开发和提交。
+
 ## 特性
 
 - **RFC 7578 合规** — 完整支持 multipart/form-data 编码格式
@@ -19,7 +27,7 @@
 ### 安装
 
 ```bash
-moon add Songyz002/moon-multipart
+moon add GCodinggo/moon-multipart
 ```
 
 ### 解析 multipart 请求体（高层 API）

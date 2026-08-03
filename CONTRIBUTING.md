@@ -7,7 +7,7 @@ Thanks for your interest in moon-multipart.
 Install the latest stable MoonBit toolchain and clone the repository:
 
 ```bash
-git clone https://github.com/Songyz002/moon-multipart.git
+git clone https://github.com/GCodinggo/moon-multipart.git
 cd moon-multipart
 ```
 

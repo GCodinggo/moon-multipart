@@ -1,5 +1,5 @@
 import {
-  "Songyz002/moon-multipart" @lib,
+  "GCodinggo/moon-multipart" @lib,
 }
 
 pkgtype(kind: "executable")
