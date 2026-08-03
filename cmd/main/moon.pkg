@@ -1,0 +1,5 @@
+import {
+  "Songyz002/moon-multipart" @lib,
+}
+
+pkgtype(kind: "executable")

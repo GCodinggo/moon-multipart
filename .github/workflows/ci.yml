@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MoonBit
+        id: setup_moonbit
+        continue-on-error: true
+        uses: hustcer/setup-moonbit@v1.22
+        with:
+          version: latest
+
+      - name: Retry Setup MoonBit
+        if: steps.setup_moonbit.outcome == 'failure'
+        uses: hustcer/setup-moonbit@v1.22
+        with:
+          version: latest
+
+      - name: Show MoonBit version
+        run: moon version --all
+
+      - name: Moon format check
+        run: moon fmt --check
+
+  check-and-test:
+    needs: format
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [native, js, wasm-gc]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MoonBit
+        id: setup_moonbit
+        continue-on-error: true
+        uses: hustcer/setup-moonbit@v1.22
+        with:
+          version: latest
+
+      - name: Retry Setup MoonBit
+        if: steps.setup_moonbit.outcome == 'failure'
+        uses: hustcer/setup-moonbit@v1.22
+        with:
+          version: latest
+
+      - name: Show MoonBit version
+        run: moon version --all
+
+      - name: Moon check
+        run: moon check --target ${{ matrix.target }}
+
+      - name: Moon build
+        run: moon build --target ${{ matrix.target }}
+
+      - name: Moon test
+        run: moon test --target ${{ matrix.target }}

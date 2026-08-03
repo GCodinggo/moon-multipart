@@ -1,0 +1,122 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Songyz002/moon-multipart"
+
+import {
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn is_content_disposition(String) -> Bool
+
+pub fn is_content_type(String) -> Bool
+
+pub fn parse_boundary_from_content_type(String) -> Result[String, MultipartError]
+
+pub fn parse_content_disposition(String) -> Result[(String, String?), MultipartError]
+
+pub fn parse_header_line(String) -> (String, String)?
+
+pub fn validate_boundary(String) -> Result[String, MultipartError]
+
+// Errors
+
+// Types and methods
+pub(all) enum BoundaryMatch {
+  Delimiter(Bytes, Bool)
+  Pending(Bytes)
+  NoData
+}
+
+pub(all) struct BoundaryMatcher {
+  delimiter : Bytes
+  delimiter_len : Int
+  buf : @buffer.Buffer
+}
+pub fn BoundaryMatcher::feed(Self, Bytes) -> BoundaryMatch
+pub fn BoundaryMatcher::finish(Self) -> Bytes
+pub fn BoundaryMatcher::new(String) -> Self
+
+pub(all) struct Limits {
+  max_parts : Int
+  max_header_size : Int
+  max_field_size : Int
+  max_file_size : Int
+  max_total_size : Int
+} derive(@debug.Debug)
+pub fn Limits::default() -> Self
+pub fn Limits::permissive() -> Self
+pub fn Limits::strict() -> Self
+
+pub(all) enum MultipartError {
+  MissingBoundary
+  InvalidBoundary(String)
+  HeaderTooLarge(Int)
+  FieldTooLarge(String, Int)
+  FileTooLarge(String, Int)
+  TotalSizeExceeded(Int)
+  TooManyParts(Int)
+  MalformedHeader(String)
+  MissingName
+  PathTraversal(String)
+  IncompleteBody
+  ProcessingError(String)
+} derive(@debug.Debug)
+pub fn MultipartError::to_string(Self) -> String
+
+pub(all) struct MultipartWriter {
+  boundary : String
+  buf : @buffer.Buffer
+  mut part_count : Int
+}
+pub fn MultipartWriter::add_field(Self, String, String) -> Unit
+pub fn MultipartWriter::add_file(Self, String, String, String?, Bytes) -> Unit
+pub fn MultipartWriter::finish(Self) -> (String, Bytes)
+pub fn MultipartWriter::get_boundary(Self) -> String
+pub fn MultipartWriter::new() -> Self
+pub fn MultipartWriter::part_count(Self) -> Int
+pub fn MultipartWriter::with_boundary(String) -> Self
+
+pub(all) enum ParseEvent {
+  PartBegin(String, String?, String?)
+  PartData(Bytes)
+  PartEnd
+} derive(@debug.Debug)
+
+type ParsePhase
+
+pub(all) struct Parser {
+  boundary : String
+  delimiter : Bytes
+  boundary_prefix : Bytes
+  delimiter_len : Int
+  limits : Limits
+  buf : @buffer.Buffer
+  mut phase : ParsePhase
+  body_buf : @buffer.Buffer
+  mut part_name : String
+  mut part_filename : String?
+  mut part_content_type : String?
+  mut part_is_file : Bool
+  mut part_count : Int
+  mut total_size : Int
+  mut first_boundary_found : Bool
+}
+pub fn Parser::feed(Self, Bytes) -> Result[Array[ParseEvent], MultipartError]
+pub fn Parser::finish(Self) -> Result[Array[ParseEvent], MultipartError]
+pub fn Parser::new(String, Limits) -> Self
+
+pub(all) enum Part {
+  Field(String, String)
+  File(String, String, String?, Bytes)
+} derive(@debug.Debug)
+pub fn Part::filename(Self) -> String?
+pub fn Part::is_field(Self) -> Bool
+pub fn Part::is_file(Self) -> Bool
+pub fn Part::name(Self) -> String
+pub fn Part::value(Self) -> String?
+
+// Type aliases
+
+// Traits
+
