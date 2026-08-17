@@ -7,7 +7,7 @@
 | 项目类型 | 原创 MoonBit 开源生态库 |
 | 参赛者 | 郭康泰 |
 | GitHub | https://github.com/GCodinggo/moon-multipart |
-| Mooncakes | 待发布（GCodinggo/moon-multipart） |
+| Mooncakes | 已发布（GCodinggo/moon-multipart，v0.3.1） |
 | 当前版本 | v0.3.1 |
 | 许可证 | Apache-2.0 |
 | 联系方式 | 通过官方报名问卷单独提交 |
