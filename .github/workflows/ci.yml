@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [native, js, wasm-gc]
+        target: [native, js, wasm, wasm-gc]
     steps:
       - uses: actions/checkout@v4
 
@@ -58,10 +58,10 @@ jobs:
         run: moon version --all
 
       - name: Moon check
-        run: moon check --target ${{ matrix.target }}
+        run: moon check --target ${{ matrix.target }} --deny-warn
 
       - name: Moon build
         run: moon build --target ${{ matrix.target }}
 
       - name: Moon test
-        run: moon test --target ${{ matrix.target }}
+        run: moon test --target ${{ matrix.target }} --deny-warn

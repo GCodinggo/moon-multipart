@@ -17,9 +17,9 @@ Before submitting a change, run:
 
 ```bash
 moon fmt
-moon check
-moon build
-moon test
+moon check --target all --deny-warn
+moon build --target all
+moon test --target all --deny-warn
 moon package --list
 ```
 

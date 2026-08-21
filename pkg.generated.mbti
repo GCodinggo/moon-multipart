@@ -188,4 +188,3 @@ pub fn StreamingWriter::write_chunk(Self, Bytes) -> Unit
 // Type aliases
 
 // Traits
-

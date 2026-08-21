@@ -180,7 +180,7 @@ let unique = unique_filename("photo.jpg")  // → "photo_3A7F2C1D.jpg"
 
 ## 项目规模
 
-- **3,650 行**有效 MoonBit 代码
+- **3,246 行**有效 MoonBit 代码（含测试和 CLI）
 - **96 个**测试用例
 - **8 个**源码模块
 

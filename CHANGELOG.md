@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.2 (2026-08-21)
+
+### Changed
+
+- Verified all 96 tests on native, JavaScript, wasm, and wasm-gc with the current MoonBit toolchain
+- Extended GitHub Actions to all four targets and enabled warning-as-error checks
+- Refreshed generated interfaces, project statistics, and final-acceptance documentation
+- Kept the core library transport-neutral; HTTP framework integration remains the caller's responsibility
+
 ## 0.3.1 (2026-08-03)
 
 ### Fixed
