@@ -183,6 +183,7 @@ let unique = unique_filename("photo.jpg")  // → "photo_3A7F2C1D.jpg"
 - **3,246 行**有效 MoonBit 代码（含测试和 CLI）
 - **96 个**测试用例
 - **8 个**源码模块
+- Mooncakes 正式版本：`GCodinggo/moon-multipart@0.3.2`
 
 ## RFC 7578 合规矩阵
 
